@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace SimplePrism.Modules.ManagementModule.Views
 {
     /// <summary>
-    /// Interaction logic for ViewA.xaml
+    /// ContentScreen.xaml 的交互逻辑
     /// </summary>
-    public partial class ViewA : UserControl
+    public partial class ContentScreen : UserControl
     {
-        public ViewA()
+        public ContentScreen()
         {
             InitializeComponent();
         }

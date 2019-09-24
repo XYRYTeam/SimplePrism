@@ -84,6 +84,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj">
+      <Project>{71128390-CB78-4362-8E9F-962E6A5195C2}</Project>
+      <Name>Infrastructure</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SimplePrism.Presentation.Common\SimplePrism.Presentation.Common.csproj">
       <Project>{090722A3-2296-4AC5-A892-A037BA1E3734}</Project>
       <Name>SimplePrism.Presentation.Common</Name>

@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
+using Unity.Exceptions;
 
 namespace SimplePrism.Presentation
 {
@@ -11,8 +16,6 @@ namespace SimplePrism.Presentation
     /// </summary>
     public partial class App : Application
     {
-        private const string DEFAULTRUNMODE = "RELEASE";
-
         ///<summary>
         /// 该函数设置由不同线程产生的窗口的显示状态
         /// </summary>
@@ -74,6 +77,7 @@ namespace SimplePrism.Presentation
             {
                 Environment.Exit(Environment.ExitCode);
             }
+
             // 控制单实例运行
             //Process process = RuningInstance();
             //if (process != null)
@@ -82,8 +86,82 @@ namespace SimplePrism.Presentation
             //    Environment.Exit(Environment.ExitCode);
             //}
 
-            Bootstrapper bootstrapper = new Bootstrapper();
-            bootstrapper.Run();
+            // 读取配置  控制程序是否以debug模式运行
+            string runMode = ConfigurationManager.AppSettings.Get("RunMode");
+            if (!string.IsNullOrEmpty(runMode))
+            {
+                if (runMode.ToUpper() == "DEBUG")
+                {
+                    ConsoleManager.Show();
+                }
+            }
+
+            //UI线程未捕获异常处理事件（UI主线程）
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+            //非UI线程未捕获异常处理事件(例如自己创建的一个子线程)
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            //Task线程内未捕获异常处理事件
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            try
+            {
+                Bootstrapper bootstrapper = new Bootstrapper();
+                bootstrapper.Run();
+
+#if RELEASE
+                //TODO： 软件注册则向Common中写入注册信息，模块监测注册信息，模块已授权才加载
+#endif
+
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+
+                HandleConfigurationError(ex);
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+            }
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            HandleException(e.Exception);
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            HandleException(e.ExceptionObject as Exception);
+        }
+
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            HandleException(e.Exception);
+        }
+
+        private static void HandleConfigurationError(ConfigurationException ex)
+        {
+            try
+            {
+                string path = (ex.InnerException is ConfigurationErrorsException ex2) ? ex2.Filename : ex.Filename;
+                if (File.Exists(path)) File.Delete(path);
+            }
+            finally
+            {
+
+                HandleException(ex);
+            }
+
+        }
+
+        private static void HandleException(Exception ex)
+        {
+            if (ex == null) return;
+            //TODO: 统一异常界面显示
+
+            Environment.Exit(Environment.ExitCode);
         }
     }
 }

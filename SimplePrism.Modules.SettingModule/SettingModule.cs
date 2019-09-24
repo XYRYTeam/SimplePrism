@@ -1,7 +1,6 @@
 ﻿using Infrastructure;
 using Prism.Modularity;
 using Prism.Regions;
-using Unity;
 
 namespace SimplePrism.Modules.SettingModule
 {
